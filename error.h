@@ -1,5 +1,6 @@
 #pragma once
 
+#include <format>
 #include <string>
 #include <utility>
 
@@ -7,6 +8,11 @@ namespace vvvv {
 struct Error {
 public:
     static Error none() noexcept { return {}; }
+
+    static Error wrap(const std::string_view label, const Error& err)
+    {
+        return Error(std::format("{}: {}", label, err.message()));
+    }
 
 public:
     Error() = default;
