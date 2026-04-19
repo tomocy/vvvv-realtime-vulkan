@@ -29,4 +29,9 @@ template <>
 struct VkStructZeroTrait<VkApplicationInfo> {
     static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 };
+
+template <>
+struct VkStructZeroTrait<VkInstanceCreateInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+};
 } // namespace vvvv
