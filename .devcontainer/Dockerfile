@@ -6,4 +6,6 @@ RUN apt update \
         clangd-18 \
         clang-format-18 \
         clang-tidy-18 \
+    && apt install -y \
+        libvulkan-dev \
     && rm -rf /var/lib/apt/lists/*
