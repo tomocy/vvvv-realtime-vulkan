@@ -1,9 +1,13 @@
 Checks: >
   *,
+  -altera-*,
+  -fuchsia-*,
   -llvmlibc-callee-namespace,
   -llvmlibc-implementation-in-namespace,
   -llvmlibc-restrict-system-libc-headers,
-  -modernize-use-trailing-return-type
+  -modernize-use-trailing-return-type,
+  -readability-redundant-access-specifiers,
+  -readability-redundant-string-init
 
 WarningsAsErrors: '*'
 
