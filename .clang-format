@@ -1,0 +1,12 @@
+BasedOnStyle: WebKit
+Language: Cpp
+Standard: c++20
+
+AlignAfterOpenBracket: BlockIndent
+
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^<.*>'
+    Priority: 1
+  - Regex: '^".*"'
+    Priority: 2
