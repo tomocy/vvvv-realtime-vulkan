@@ -27,3 +27,10 @@ constexpr T vkStructZero(F&& f = {}) noexcept(std::is_nothrow_invocable_v<F&, T&
     return v;
 }
 } // namespace vvvv
+
+namespace vvvv {
+template <>
+struct VkStructZeroTrait<VkApplicationInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+};
+} // namespace vvvv
