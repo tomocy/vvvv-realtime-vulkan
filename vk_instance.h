@@ -7,8 +7,29 @@
 #include <vulkan/vulkan_core.h>
 
 #include "error.h"
+#include "scoped.h"
 #include "vk_result.h" // IWYU pragma: keep
 #include "vk_struct.h"
+
+namespace vvvv {
+template <>
+struct ScopedTrait<VkInstance> {
+public:
+    struct Owner {
+        VkAllocationCallbacks* allocator = nullptr;
+    };
+
+public:
+    static void drop(VkInstance& instance, const Owner& owner)
+    {
+        if (instance == VK_NULL_HANDLE) {
+            return;
+        }
+
+        vkDestroyInstance(instance, owner.allocator);
+    }
+};
+} // namespace vvvv
 
 namespace vvvv {
 struct CreateVkInstance {
