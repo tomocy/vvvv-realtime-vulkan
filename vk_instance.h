@@ -34,15 +34,18 @@ public:
 namespace vvvv {
 struct CreateVkInstance {
 public:
-    [[nodiscard]] std::tuple<VkInstance, Error> invoke() const noexcept
+    [[nodiscard]] std::tuple<Scoped<VkInstance>, Error> invoke() const noexcept
     {
         VkInstance instance = VK_NULL_HANDLE;
         const auto result = vkCreateInstance(&info, allocator, &instance);
         if (result != VK_SUCCESS) {
-            return { VK_NULL_HANDLE, vvvv::Error(std::format("{}", result)) };
+            return { Scoped<VkInstance>(), vvvv::Error(std::format("{}", result)) };
         }
 
-        return { instance, vvvv::Error::none() };
+        return {
+            Scoped(instance, { .allocator = allocator }),
+            vvvv::Error::none()
+        };
     }
 
 public:

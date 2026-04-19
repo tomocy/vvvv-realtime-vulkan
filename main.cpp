@@ -2,6 +2,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include "error.h"
+#include "scoped.h"
 #include "vk_instance.h"
 
 namespace {
@@ -23,7 +24,7 @@ vvvv::Error run()
 {
     VkAllocationCallbacks* allocator = nullptr;
 
-    VkInstance instance = VK_NULL_HANDLE;
+    vvvv::Scoped<VkInstance> instance {};
     {
         auto [v, err] = vvvv::CreateVkInstance()
                             .with([&](auto& opts) {
@@ -36,11 +37,9 @@ vvvv::Error run()
             return vvvv::Error::wrap("creating vkInstance", err);
         }
 
-        instance = v;
-        std::cout << "VkInstance: " << instance << "\n";
+        instance = std::move(v);
+        std::cout << "VkInstance: " << instance.value() << "\n";
     }
-
-    vkDestroyInstance(instance, allocator);
 
     std::cout << "Completed\n";
     return vvvv::Error::none();
