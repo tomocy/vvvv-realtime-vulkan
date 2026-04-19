@@ -23,3 +23,10 @@ constexpr T vkStructZero()
     return v;
 }
 } // namespace vvvv
+
+namespace vvvv {
+template <>
+struct VkStructZeroTrait<VkApplicationInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+};
+} // namespace vvvv
