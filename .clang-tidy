@@ -6,6 +6,7 @@ Checks: >
   -llvmlibc-implementation-in-namespace,
   -llvmlibc-restrict-system-libc-headers,
   -modernize-use-trailing-return-type,
+  -readability-identifier-length,
   -readability-redundant-access-specifiers,
   -readability-redundant-string-init
 
