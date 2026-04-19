@@ -5,6 +5,7 @@ Checks: >
   -llvmlibc-callee-namespace,
   -llvmlibc-implementation-in-namespace,
   -llvmlibc-restrict-system-libc-headers,
+  -misc-non-private-member-variables-in-classes,
   -modernize-use-trailing-return-type,
   -readability-identifier-length,
   -readability-redundant-access-specifiers,
