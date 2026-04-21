@@ -34,4 +34,9 @@ template <>
 struct VkStructZeroTrait<VkInstanceCreateInfo> {
     static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 };
+
+template <>
+struct VkStructZeroTrait<VkDebugUtilsMessengerCreateInfoEXT> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+};
 } // namespace vvvv
