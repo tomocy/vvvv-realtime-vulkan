@@ -3,10 +3,10 @@
 #include <format>
 #include <functional>
 #include <span>
-#include <tuple>
 #include <vulkan/vulkan_core.h>
 
 #include "error.h"
+#include "result.h"
 #include "scoped.h"
 #include "vk_result.h" // IWYU pragma: keep
 #include "vk_struct.h"
@@ -34,7 +34,7 @@ public:
 namespace vvvv {
 struct CreateVkInstance {
 public:
-    [[nodiscard]] std::tuple<Scoped<VkInstance>, Error> invoke() const noexcept
+    [[nodiscard]] Result::Either<Scoped<VkInstance>, Error> invoke() const noexcept
     {
         const auto createInfo = [&]() {
             auto v = vkStructZero<VkInstanceCreateInfo>();
@@ -51,13 +51,10 @@ public:
         VkInstance instance = VK_NULL_HANDLE;
         const auto result = vkCreateInstance(&createInfo, allocator, &instance);
         if (result != VK_SUCCESS) {
-            return { Scoped<VkInstance>(), vvvv::Error(std::format("{}", result)) };
+            return Result::Error(Error(std::format("{}", result)));
         }
 
-        return {
-            Scoped(instance, { .allocator = allocator }),
-            vvvv::Error::none()
-        };
+        return Result::OK(Scoped(instance, { .allocator = allocator }));
     }
 
 public:

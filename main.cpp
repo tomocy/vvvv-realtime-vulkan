@@ -26,18 +26,18 @@ vvvv::Error run()
 
     vvvv::Scoped<VkInstance> instance {};
     {
-        auto [v, err] = vvvv::CreateVkInstance()
-                            .with([&](auto& opts) {
-                                opts.appInfo.pApplicationName = "vvvv";
-                                opts.appInfo.apiVersion = VK_MAKE_API_VERSION(0, 1, 4, 0);
-                                opts.allocator = allocator;
-                            })
-                            .invoke();
-        if (err.has()) {
-            return vvvv::Error::wrap("creating vkInstance", err);
+        auto r = vvvv::CreateVkInstance()
+                     .with([&](auto& opts) {
+                         opts.appInfo.pApplicationName = "vvvv";
+                         opts.appInfo.apiVersion = VK_MAKE_API_VERSION(0, 1, 4, 0);
+                         opts.allocator = allocator;
+                     })
+                     .invoke();
+        if (!r.isOK()) {
+            return vvvv::Error::wrap("creating vkInstance", r.error());
         }
 
-        instance = std::move(v);
+        instance = std::move(r.ok());
         std::cout << "VkInstance: " << instance.value() << "\n";
     }
 
