@@ -31,7 +31,10 @@ public:
     vvvv::Error resolveFrom(VkInstance instance) noexcept
     {
         // NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
-        const std::array<std::pair<PFN_vkVoidFunction*, const char*>, 0> entries {};
+        const auto entries = std::to_array<std::pair<PFN_vkVoidFunction*, const char*>>({
+            std::pair { reinterpret_cast<PFN_vkVoidFunction*>(&vkCreateDebugUtilsMessenger), "vkCreateDebugUtilsMessengerEXT" },
+            std::pair { reinterpret_cast<PFN_vkVoidFunction*>(&vkDestroyDebugUtilsMessenger), "vkDestroyDebugUtilsMessengerEXT" },
+        });
         // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
 
         for (const auto& [dst, name] : entries) {
@@ -47,6 +50,10 @@ public:
 
         return vvvv::Error::none();
     }
+
+public:
+    PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessenger = nullptr;
+    PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessenger = nullptr;
 };
 } // namespace
 
@@ -100,15 +107,16 @@ vvvv::Error run()
         }
     }
 
+    VkDispatchTable dispatchTable {};
+    {
+        const auto err = dispatchTable.resolveFrom(instance.value());
+        if (err.has()) {
+            return vvvv::Error::wrap("resolving vkInstance dispatch table", err);
+        }
+    }
+
     vvvv::Scoped<VkDebugUtilsMessengerEXT> debugMessenger {};
     {
-        const auto vkCreate = vvvv::GetVkProcessAddress<VkInstance>(instance.value())
-                                  .with([](auto& opts) { opts.name = "vkCreateDebugUtilsMessengerEXT"; })
-                                  .invoke<PFN_vkCreateDebugUtilsMessengerEXT>();
-        const auto vkDestroy = vvvv::GetVkProcessAddress<VkInstance>(instance.value())
-                                   .with([](auto& opts) { opts.name = "vkDestroyDebugUtilsMessengerEXT"; })
-                                   .invoke<PFN_vkDestroyDebugUtilsMessengerEXT>();
-
         auto r = vvvv::CreateVkDebugUtilsMessenger(instance.value())
                      .with([&](auto& opts) {
                          opts.severity = static_cast<VkFlags>(0)
@@ -123,8 +131,8 @@ vvvv::Error run()
                              | VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT;
                          opts.callback = vkDebugUtilsMessengerCallback;
                          opts.allocator = allocator;
-                         opts.vkCreateDebugUtilsMessenger = vkCreate;
-                         opts.vkDestroyDebugUtilsMessenger = vkDestroy;
+                         opts.vkCreateDebugUtilsMessenger = dispatchTable.vkCreateDebugUtilsMessenger;
+                         opts.vkDestroyDebugUtilsMessenger = dispatchTable.vkDestroyDebugUtilsMessenger;
                      })
                      .invoke();
         if (!r.isOK()) {
