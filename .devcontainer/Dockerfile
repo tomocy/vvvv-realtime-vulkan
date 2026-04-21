@@ -8,4 +8,5 @@ RUN apt update \
         clang-tidy-18 \
     && apt install -y \
         libvulkan-dev \
+        vulkan-validationlayers \
     && rm -rf /var/lib/apt/lists/*
