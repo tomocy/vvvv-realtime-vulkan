@@ -1,3 +1,4 @@
+#include <array>
 #include <iostream>
 #include <vulkan/vulkan_core.h>
 
@@ -32,9 +33,15 @@ vvvv::Error run()
             v.apiVersion = VK_MAKE_API_VERSION(0, 1, 4, 0);
         });
 
+        const auto layerNames = std::to_array({
+            "VK_LAYER_KHRONOS_validation",
+        });
+
         auto r = vvvv::CreateVkInstance()
                      .with([&](auto& opts) {
                          opts.info.pApplicationInfo = &appInfo;
+                         opts.info.ppEnabledLayerNames = layerNames.data();
+                         opts.info.enabledLayerCount = layerNames.size();
                          opts.allocator = allocator;
                      })
                      .invoke();
@@ -44,6 +51,11 @@ vvvv::Error run()
 
         instance = std::move(r.ok());
         std::cout << "VkInstance: " << instance.value() << "\n";
+
+        std::cout << "VkInstance layers:\n";
+        for (const auto& name : layerNames) {
+            std::cout << "- " << name << "\n";
+        }
     }
 
     std::cout << "Completed\n";
