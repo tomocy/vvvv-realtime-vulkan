@@ -2,6 +2,7 @@ Checks: >
   *,
   -altera-*,
   -fuchsia-*,
+  -hicpp-explicit-conversions,
   -llvmlibc-callee-namespace,
   -llvmlibc-implementation-in-namespace,
   -llvmlibc-restrict-system-libc-headers,
