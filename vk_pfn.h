@@ -45,3 +45,14 @@ public:
     const char* name = nullptr;
 };
 } // namespace vvvv
+
+namespace vvvv {
+template <>
+struct GetVkProcessAddressTrait<VkInstance> {
+public:
+    static PFN_vkVoidFunction get(VkInstance instance, const char* const name)
+    {
+        return vkGetInstanceProcAddr(instance, name);
+    }
+};
+} // namespace vvvv
