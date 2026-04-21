@@ -4,6 +4,7 @@
 #include "error.h"
 #include "scoped.h"
 #include "vk_instance.h"
+#include "vk_struct.h"
 
 namespace {
 vvvv::Error run();
@@ -26,18 +27,22 @@ vvvv::Error run()
 
     vvvv::Scoped<VkInstance> instance {};
     {
-        auto [v, err] = vvvv::CreateVkInstance()
-                            .with([&](auto& opts) {
-                                opts.appInfo.pApplicationName = "vvvv";
-                                opts.appInfo.apiVersion = VK_MAKE_API_VERSION(0, 1, 4, 0);
-                                opts.allocator = allocator;
-                            })
-                            .invoke();
-        if (err.has()) {
-            return vvvv::Error::wrap("creating vkInstance", err);
+        const auto appInfo = vvvv::vkStructZero<VkApplicationInfo>([](auto& v) {
+            v.pApplicationName = "vvvv";
+            v.apiVersion = VK_MAKE_API_VERSION(0, 1, 4, 0);
+        });
+
+        auto r = vvvv::CreateVkInstance()
+                     .with([&](auto& opts) {
+                         opts.info.pApplicationInfo = &appInfo;
+                         opts.allocator = allocator;
+                     })
+                     .invoke();
+        if (!r.isOK()) {
+            return vvvv::Error::wrap("creating vkInstance", r.error());
         }
 
-        instance = std::move(v);
+        instance = std::move(r.ok());
         std::cout << "VkInstance: " << instance.value() << "\n";
     }
 
