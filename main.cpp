@@ -26,6 +26,31 @@ int main()
 }
 
 namespace {
+struct VkDispatchTable {
+public:
+    vvvv::Error resolveFrom(VkInstance instance) noexcept
+    {
+        // NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
+        const std::array<std::pair<PFN_vkVoidFunction*, const char*>, 0> entries {};
+        // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
+
+        for (const auto& [dst, name] : entries) {
+            const auto addr = vvvv::GetVkProcessAddress<VkInstance>(instance)
+                                  .with([&](auto& opts) { opts.name = name; })
+                                  .invoke<PFN_vkVoidFunction>();
+            if (addr == nullptr) {
+                return vvvv::Error(std::format("{} not available", name));
+            }
+
+            *dst = addr;
+        }
+
+        return vvvv::Error::none();
+    }
+};
+} // namespace
+
+namespace {
 VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugUtilsMessengerCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT severity,
     VkDebugUtilsMessageTypeFlagsEXT types,
