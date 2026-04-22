@@ -2,11 +2,13 @@
 #include <iostream>
 #include <string>
 #include <utility>
+#include <vector>
 #include <vulkan/vulkan_core.h>
 
 #include "error.h"
 #include "scoped.h"
 #include "vk_debug.h"
+#include "vk_device.h"
 #include "vk_instance.h"
 #include "vk_pfn.h"
 #include "vk_struct.h"
@@ -147,6 +149,35 @@ vvvv::Error run()
 
         debugMessenger = std::move(r.ok());
         std::cout << "VkDebugUtilsMessenger: " << debugMessenger.value() << "\n";
+    }
+
+    VkPhysicalDevice physicalDevice {};
+    uint32_t queueFamilyIndex {};
+    {
+        std::vector<VkPhysicalDevice> physicalDevices {};
+        {
+            auto r = vvvv::EnumerateVkPhysicalDevices(instance.value()).invoke();
+            if (!r.isOK()) {
+                return vvvv::Error::wrap("enumerating vkPhysicalDevices", r.error());
+            }
+
+            physicalDevices = std::move(r.ok());
+        }
+        {
+            auto r = vvvv::FindVkPhysicalDevice(physicalDevices)
+                         .with([](auto& opts) noexcept {
+                             opts.queueFlags = VK_QUEUE_GRAPHICS_BIT;
+                         })
+                         .invoke();
+            if (!r.isOK()) {
+                return vvvv::Error::wrap("finding vkPhysicalDevice", r.error());
+            }
+
+            std::tie(physicalDevice, queueFamilyIndex) = r.ok();
+        }
+
+        std::cout << "VkPhysicalDevice: " << physicalDevice << "\n";
+        std::cout << "VkQueueFamilyIndex: " << queueFamilyIndex << "\n";
     }
 
     std::cout << "Completed\n";
