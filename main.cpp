@@ -7,6 +7,7 @@
 
 #include "error.h"
 #include "scoped.h"
+#include "vk_command.h"
 #include "vk_debug.h"
 #include "vk_device.h"
 #include "vk_instance.h"
@@ -209,6 +210,22 @@ vvvv::Error run()
 
         std::cout << "VkDevice: " << device.value() << "\n";
         std::cout << "VkQueue: " << queue << "\n";
+    }
+
+    vvvv::Scoped<VkCommandPool> commandPool {};
+    {
+        auto r = vvvv::CreateVkCommandPool(device.value())
+                     .with([&](auto& opts) noexcept {
+                         opts.info.queueFamilyIndex = queueFamilyIndex;
+                         opts.allocator = allocator;
+                     })
+                     .invoke();
+        if (!r.isOK()) {
+            return vvvv::Error::wrap("creating vkCommandPool", r.error());
+        }
+
+        commandPool = std::move(r.ok());
+        std::cout << "VkCommandPool: " << commandPool.value() << "\n";
     }
 
     std::cout << "Completed\n";
