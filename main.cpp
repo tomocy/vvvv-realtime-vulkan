@@ -180,6 +180,37 @@ vvvv::Error run()
         std::cout << "VkQueueFamilyIndex: " << queueFamilyIndex << "\n";
     }
 
+    vvvv::Scoped<VkDevice> device {};
+    VkQueue queue {};
+    {
+        {
+            const float queuePriority = 1.0;
+            const auto queueCreateInfo = vvvv::vkStructZero<VkDeviceQueueCreateInfo>([&](auto& v) {
+                v.queueFamilyIndex = queueFamilyIndex;
+                v.queueCount = 1;
+                v.pQueuePriorities = &queuePriority;
+            });
+
+            auto r = vvvv::CreateVkDevice(physicalDevice)
+                         .with([&](auto& opts) noexcept {
+                             opts.info.queueCreateInfoCount = 1;
+                             opts.info.pQueueCreateInfos = &queueCreateInfo;
+                             opts.allocator = allocator;
+                         })
+                         .invoke();
+            if (!r.isOK()) {
+                return vvvv::Error::wrap("creating vkDevice", r.error());
+            }
+
+            device = std::move(r.ok());
+        }
+
+        vkGetDeviceQueue(device.value(), queueFamilyIndex, 0, &queue);
+
+        std::cout << "VkDevice: " << device.value() << "\n";
+        std::cout << "VkQueue: " << queue << "\n";
+    }
+
     std::cout << "Completed\n";
     return vvvv::Error::none();
 }
