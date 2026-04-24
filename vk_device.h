@@ -10,6 +10,7 @@
 
 #include "error.h"
 #include "result.h"
+#include "scoped.h"
 #include "vk_queue.h"
 #include "vk_result.h" // IWYU pragma: keep
 
@@ -86,5 +87,25 @@ public:
 public:
     std::span<const VkPhysicalDevice> physicalDevices;
     VkQueueFlags queueFlags = 0;
+};
+} // namespace vvvv
+
+namespace vvvv {
+template <>
+struct ScopedTrait<VkDevice> {
+public:
+    struct Owner {
+        VkAllocationCallbacks* allocator = nullptr;
+    };
+
+public:
+    static void drop(VkDevice& device, const Owner& owner)
+    {
+        if (device == VK_NULL_HANDLE) {
+            return;
+        }
+
+        vkDestroyDevice(device, owner.allocator);
+    }
 };
 } // namespace vvvv
