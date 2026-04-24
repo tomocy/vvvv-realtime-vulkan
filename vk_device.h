@@ -13,6 +13,7 @@
 #include "scoped.h"
 #include "vk_queue.h"
 #include "vk_result.h" // IWYU pragma: keep
+#include "vk_struct.h"
 
 namespace vvvv {
 struct EnumerateVkPhysicalDevices {
@@ -107,5 +108,41 @@ public:
 
         vkDestroyDevice(device, owner.allocator);
     }
+};
+} // namespace vvvv
+
+namespace vvvv {
+struct CreateVkDevice {
+public:
+    explicit CreateVkDevice(VkPhysicalDevice physicalDevice) noexcept
+        : physicalDevice(physicalDevice)
+    {
+    }
+
+public:
+    [[nodiscard]] Result::Either<Scoped<VkDevice>, Error> invoke() const noexcept
+    {
+        VkDevice device = VK_NULL_HANDLE;
+        const auto result = vkCreateDevice(physicalDevice, &info, allocator, &device);
+        if (result != VK_SUCCESS) {
+            return Result::Error(Error(std::format("{}", result)));
+        }
+
+        return Result::OK(Scoped(device, { .allocator = allocator }));
+    }
+
+public:
+    template <typename F>
+        requires std::is_nothrow_invocable_v<F&, CreateVkDevice&>
+    CreateVkDevice& with(F f) noexcept
+    {
+        f(*this);
+        return *this;
+    }
+
+public:
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    VkDeviceCreateInfo info = vkStructZero<VkDeviceCreateInfo>();
+    VkAllocationCallbacks* allocator = nullptr;
 };
 } // namespace vvvv

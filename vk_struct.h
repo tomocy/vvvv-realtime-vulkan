@@ -48,4 +48,9 @@ template <>
 struct VkStructZeroTrait<VkQueueFamilyProperties2> {
     static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2;
 };
+
+template <>
+struct VkStructZeroTrait<VkDeviceCreateInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+};
 } // namespace vvvv
