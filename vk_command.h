@@ -1,12 +1,16 @@
 #pragma once
 
+#include <array>
 #include <functional>
+#include <span>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
 #include "error.h"
 #include "result.h"
 #include "scoped.h"
+#include "vk_fence.h"
+#include "vk_queue.h"
 #include "vk_result.h" // IWYU pragma: keep
 #include "vk_struct.h"
 
@@ -267,5 +271,72 @@ public:
     VkCommandPool commandPool = VK_NULL_HANDLE;
     VkCommandBufferBeginInfo beginInfo = vkStructZero<VkCommandBufferBeginInfo>();
     R record;
+};
+} // namespace vvvv
+
+namespace vvvv {
+struct ExecuteVkCommandBuffers {
+public:
+    explicit ExecuteVkCommandBuffers(VkDevice device, VkQueue queue) noexcept
+        : device(device)
+        , queue(queue)
+    {
+    }
+
+public:
+    [[nodiscard]] Error invoke() const noexcept
+    {
+        Scoped<VkFence> fence {};
+        {
+            auto r = CreateVkFence(device).invoke();
+            if (!r.isOK()) {
+                return Error::wrap("creating VkFence", r.error());
+            }
+
+            fence = std::move(r.ok());
+        }
+
+        {
+            const auto err = SubmitToVkQueue(queue)
+                                 .with([&](auto& opts) {
+                                     opts.info.commandBufferCount = commandBuffers.size();
+                                     opts.info.pCommandBuffers = commandBuffers.data();
+                                     opts.fence = fence.value();
+                                 })
+                                 .invoke();
+            if (err.has()) {
+                return Error::wrap("submitting to VkQueue", err);
+            }
+        }
+        {
+            const auto fences = std::to_array({ fence.value() });
+
+            const auto err = WaitForVkFences(device)
+                                 .with([&](auto& opts) {
+                                     opts.fences = fences;
+                                 })
+                                 .invoke();
+            if (err.has()) {
+                return Error::wrap("waiting for VkFence", err);
+            }
+        }
+
+        return Error::none();
+    }
+
+public:
+    template <typename F>
+        requires std::invocable<F&, ExecuteVkCommandBuffers&>
+        && std::same_as<std::invoke_result_t<F&, ExecuteVkCommandBuffers&>, void>
+    ExecuteVkCommandBuffers& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, ExecuteVkCommandBuffers&>)
+    {
+        std::forward<F>(options)(*this);
+        return *this;
+    }
+
+public:
+    VkDevice device = VK_NULL_HANDLE;
+    VkQueue queue = VK_NULL_HANDLE;
+    std::span<const VkCommandBuffer> commandBuffers;
 };
 } // namespace vvvv
