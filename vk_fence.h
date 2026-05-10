@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <functional>
 #include <span>
 #include <utility>
 #include <vulkan/vulkan_core.h>
@@ -58,7 +59,7 @@ public:
         && std::same_as<std::invoke_result_t<F&, CreateVkFence&>, void>
     CreateVkFence& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, CreateVkFence&>)
     {
-        std::forward<F>(options)(*this);
+        std::invoke(std::forward<F>(options), *this);
         return *this;
     }
 
@@ -94,7 +95,7 @@ public:
         && std::same_as<std::invoke_result_t<F&, WaitForVkFences&>, void>
     WaitForVkFences& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, WaitForVkFences&>)
     {
-        std::forward<F>(options)(*this);
+        std::invoke(std::forward<F>(options), *this);
         return *this;
     }
 

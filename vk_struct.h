@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <functional>
 #include <utility>
 #include <vulkan/vulkan_core.h>
 
@@ -23,7 +24,7 @@ constexpr T vkStructZero(F&& f = {}) noexcept(std::is_nothrow_invocable_v<F&, T&
 {
     T v {};
     v.sType = VkStructZeroTrait<T>::sType;
-    std::forward<F>(f)(v);
+    std::invoke(std::forward<F>(f), v);
     return v;
 }
 } // namespace vvvv

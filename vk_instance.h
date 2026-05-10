@@ -2,6 +2,7 @@
 
 #include <concepts>
 #include <format>
+#include <functional>
 #include <type_traits>
 #include <vulkan/vulkan_core.h>
 
@@ -51,7 +52,7 @@ public:
         && std::same_as<std::invoke_result_t<F&, CreateVkInstance&>, void>
     CreateVkInstance& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, CreateVkInstance&>)
     {
-        std::forward<F>(options)(*this);
+        std::invoke(std::forward<F>(options), *this);
         return *this;
     }
 

@@ -61,7 +61,7 @@ public:
         && std::same_as<std::invoke_result_t<F&, CreateVkCommandPool&>, void>
     CreateVkCommandPool& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, CreateVkCommandPool&>)
     {
-        std::forward<F>(options)(*this);
+        std::invoke(std::forward<F>(options), *this);
         return *this;
     }
 
@@ -142,7 +142,7 @@ public:
         && std::same_as<std::invoke_result_t<F&, AllocateVkCommandBuffers&>, void>
     AllocateVkCommandBuffers& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, AllocateVkCommandBuffers&>)
     {
-        std::forward<F>(options)(*this);
+        std::invoke(std::forward<F>(options), *this);
         return *this;
     }
 
@@ -199,7 +199,7 @@ public:
         && std::same_as<std::invoke_result_t<F&, RecordToVkCommandBuffer&>, void>
     RecordToVkCommandBuffer& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, RecordToVkCommandBuffer&>)
     {
-        std::forward<F>(options)(*this);
+        std::invoke(std::forward<F>(options), *this);
         return *this;
     }
 
@@ -262,7 +262,7 @@ public:
         && std::same_as<std::invoke_result_t<F&, AllocateRecordToVkCommandBuffer&>, void>
     AllocateRecordToVkCommandBuffer& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, AllocateRecordToVkCommandBuffer&>)
     {
-        std::forward<F>(options)(*this);
+        std::invoke(std::forward<F>(options), *this);
         return *this;
     }
 
@@ -330,7 +330,7 @@ public:
         && std::same_as<std::invoke_result_t<F&, ExecuteVkCommandBuffers&>, void>
     ExecuteVkCommandBuffers& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, ExecuteVkCommandBuffers&>)
     {
-        std::forward<F>(options)(*this);
+        std::invoke(std::forward<F>(options), *this);
         return *this;
     }
 

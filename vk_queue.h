@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <functional>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
@@ -67,7 +68,7 @@ public:
         && std::same_as<std::invoke_result_t<F&, SubmitToVkQueue&>, void>
     SubmitToVkQueue& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, SubmitToVkQueue&>)
     {
-        std::forward<F>(options)(*this);
+        std::invoke(std::forward<F>(options), *this);
         return *this;
     }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <format>
+#include <functional>
 #include <utility>
 #include <vulkan/vulkan_core.h>
 
@@ -74,7 +75,7 @@ public:
         && std::same_as<std::invoke_result_t<F&, CreateVkDebugUtilsMessenger&>, void>
     CreateVkDebugUtilsMessenger& with(F&& f)
     {
-        std::forward<F>(f)(*this);
+        std::invoke(std::forward<F>(f), *this);
         return *this;
     }
 
