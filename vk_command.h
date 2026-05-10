@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
@@ -151,5 +152,56 @@ public:
     });
 
     VkAllocationCallbacks* allocator = nullptr;
+};
+} // namespace vvvv
+
+namespace vvvv {
+template <typename R>
+    requires std::invocable<const R&, VkCommandBuffer>
+    && std::same_as<std::invoke_result_t<const R&, VkCommandBuffer>, void>
+struct RecordToVkCommandBuffer {
+public:
+    explicit RecordToVkCommandBuffer(VkCommandBuffer commandBuffer, R record) noexcept
+        : commandBuffer(commandBuffer)
+        , record(std::move(record))
+    {
+    }
+
+public:
+    [[nodiscard]] Error invoke() const noexcept(std::is_nothrow_invocable_v<const R&, VkCommandBuffer>)
+    {
+        {
+            const auto err = vkBeginCommandBuffer(commandBuffer, &beginInfo);
+            if (err != VK_SUCCESS) {
+                return Error(std::format("{}", err));
+            }
+        }
+
+        std::invoke(record, commandBuffer);
+
+        {
+            const auto err = vkEndCommandBuffer(commandBuffer);
+            if (err != VK_SUCCESS) {
+                return Error(std::format("{}", err));
+            }
+        }
+
+        return Error::none();
+    }
+
+public:
+    template <typename F>
+        requires std::invocable<F&, RecordToVkCommandBuffer&>
+        && std::same_as<std::invoke_result_t<F&, RecordToVkCommandBuffer&>, void>
+    RecordToVkCommandBuffer& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, RecordToVkCommandBuffer&>)
+    {
+        std::forward<F>(options)(*this);
+        return *this;
+    }
+
+public:
+    VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+    VkCommandBufferBeginInfo beginInfo = vkStructZero<VkCommandBufferBeginInfo>();
+    R record;
 };
 } // namespace vvvv

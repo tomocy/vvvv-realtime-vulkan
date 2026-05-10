@@ -68,4 +68,9 @@ template <>
 struct VkStructZeroTrait<VkCommandBufferAllocateInfo> {
     static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 };
+
+template <>
+struct VkStructZeroTrait<VkCommandBufferBeginInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+};
 } // namespace vvvv
