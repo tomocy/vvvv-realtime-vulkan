@@ -25,7 +25,7 @@ public:
 public:
     template <typename U>
         requires std::is_function_v<std::remove_pointer_t<U>>
-    U invoke() const noexcept
+    U operator()() const noexcept
     {
         const auto addr = GetVkProcessAddressTrait<T>::get(context, name);
         return reinterpret_cast<U>(addr); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)

@@ -42,7 +42,7 @@ public:
     }
 
 public:
-    [[nodiscard]] Result::Either<Scoped<VkDebugUtilsMessengerEXT>, Error> invoke() const noexcept
+    [[nodiscard]] Result::Either<Scoped<VkDebugUtilsMessengerEXT>, Error> operator()() const noexcept
     {
         if (vkCreateDebugUtilsMessenger == nullptr) {
             return Result::Error(Error("vkCreateDebugUtilsMessenger not provided"));

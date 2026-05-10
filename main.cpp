@@ -43,7 +43,7 @@ public:
         for (const auto& [dst, name] : entries) {
             const auto addr = vvvv::GetVkProcessAddress<VkInstance>(instance)
                                   .with([&](auto& opts) { opts.name = name; })
-                                  .invoke<PFN_vkVoidFunction>();
+                                  .operator()<PFN_vkVoidFunction>();
             if (addr == nullptr) {
                 return vvvv::Error(std::format("{} not available", name));
             }
@@ -96,8 +96,7 @@ vvvv::Error run()
                          opts.info.ppEnabledExtensionNames = extensionNames.data();
                          opts.info.enabledExtensionCount = extensionNames.size();
                          opts.allocator = allocator;
-                     })
-                     .invoke();
+                     })();
         if (!r.isOK()) {
             return vvvv::Error::wrap("creating VkInstance", r.error());
         }
@@ -142,8 +141,7 @@ vvvv::Error run()
                          opts.allocator = allocator;
                          opts.vkCreateDebugUtilsMessenger = dispatchTable.vkCreateDebugUtilsMessenger;
                          opts.vkDestroyDebugUtilsMessenger = dispatchTable.vkDestroyDebugUtilsMessenger;
-                     })
-                     .invoke();
+                     })();
         if (!r.isOK()) {
             return vvvv::Error::wrap("creating VkDebugUtilsMessenger", r.error());
         }
@@ -157,7 +155,7 @@ vvvv::Error run()
     {
         std::vector<VkPhysicalDevice> physicalDevices {};
         {
-            auto r = vvvv::EnumerateVkPhysicalDevices(instance.value()).invoke();
+            auto r = vvvv::EnumerateVkPhysicalDevices(instance.value())();
             if (!r.isOK()) {
                 return vvvv::Error::wrap("enumerating VkPhysicalDevices", r.error());
             }
@@ -168,8 +166,7 @@ vvvv::Error run()
             auto r = vvvv::FindVkPhysicalDevice(physicalDevices)
                          .with([](auto& opts) noexcept {
                              opts.queueFlags = VK_QUEUE_GRAPHICS_BIT;
-                         })
-                         .invoke();
+                         })();
             if (!r.isOK()) {
                 return vvvv::Error::wrap("finding VkPhysicalDevice", r.error());
             }
@@ -197,8 +194,7 @@ vvvv::Error run()
                              opts.info.queueCreateInfoCount = 1;
                              opts.info.pQueueCreateInfos = &queueCreateInfo;
                              opts.allocator = allocator;
-                         })
-                         .invoke();
+                         })();
             if (!r.isOK()) {
                 return vvvv::Error::wrap("creating VkDevice", r.error());
             }
@@ -218,8 +214,7 @@ vvvv::Error run()
                      .with([&](auto& opts) noexcept {
                          opts.info.queueFamilyIndex = queueFamilyIndex;
                          opts.allocator = allocator;
-                     })
-                     .invoke();
+                     })();
         if (!r.isOK()) {
             return vvvv::Error::wrap("creating VkCommandPool", r.error());
         }
@@ -235,8 +230,7 @@ vvvv::Error run()
         auto r = vvvv::AllocateRecordToVkCommandBuffer(device.value(), commandPool.value(), record)
                      .with([](auto& opts) {
                          opts.beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-                     })
-                     .invoke();
+                     })();
         if (!r.isOK()) {
             return vvvv::Error::wrap("allocating, recording to VkCommandBuffer", r.error());
         }
@@ -250,8 +244,7 @@ vvvv::Error run()
         const auto err = vvvv::ExecuteVkCommandBuffers(device.value(), queue)
                              .with([&](auto& opts) {
                                  opts.commandBuffers = commandBuffers;
-                             })
-                             .invoke();
+                             })();
         if (err.has()) {
             return vvvv::Error::wrap("executing VkCommandBuffers", err);
         }

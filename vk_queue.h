@@ -18,7 +18,7 @@ public:
     }
 
 public:
-    [[nodiscard]] std::vector<VkQueueFamilyProperties2> invoke() const noexcept
+    [[nodiscard]] std::vector<VkQueueFamilyProperties2> operator()() const noexcept
     {
         uint32_t count = 0;
         vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, &count, nullptr);
@@ -52,7 +52,7 @@ public:
     }
 
 public:
-    [[nodiscard]] Error invoke() const noexcept
+    [[nodiscard]] Error operator()() const noexcept
     {
         const auto err = vkQueueSubmit(queue, 1, &info, fence);
         if (err != VK_SUCCESS) {

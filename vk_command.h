@@ -44,7 +44,7 @@ public:
     }
 
 public:
-    [[nodiscard]] Result::Either<Scoped<VkCommandPool>, Error> invoke() const noexcept
+    [[nodiscard]] Result::Either<Scoped<VkCommandPool>, Error> operator()() const noexcept
     {
         VkCommandPool commandPool = VK_NULL_HANDLE;
         const auto err = vkCreateCommandPool(device, &info, allocator, &commandPool);
@@ -122,7 +122,7 @@ public:
     }
 
 public:
-    [[nodiscard]] Result::Either<Scoped<std::vector<VkCommandBuffer>>, Error> invoke() const noexcept
+    [[nodiscard]] Result::Either<Scoped<std::vector<VkCommandBuffer>>, Error> operator()() const noexcept
     {
         auto info = this->info;
         info.commandPool = commandPool;
@@ -172,7 +172,7 @@ public:
     }
 
 public:
-    [[nodiscard]] Error invoke() const noexcept(std::is_nothrow_invocable_v<const R&, VkCommandBuffer>)
+    [[nodiscard]] Error operator()() const noexcept(std::is_nothrow_invocable_v<const R&, VkCommandBuffer>)
     {
         {
             const auto err = vkBeginCommandBuffer(commandBuffer, &beginInfo);
@@ -224,15 +224,14 @@ public:
     }
 
 public:
-    [[nodiscard]] Result::Either<Scoped<VkCommandBuffer>, Error> invoke() const noexcept(std::is_nothrow_invocable_v<const R&, VkCommandBuffer>)
+    [[nodiscard]] Result::Either<Scoped<VkCommandBuffer>, Error> operator()() const noexcept(std::is_nothrow_invocable_v<const R&, VkCommandBuffer>)
     {
         Scoped<VkCommandBuffer> commandBuffer {};
         {
             auto r = AllocateVkCommandBuffers(device, commandPool)
                          .with([&](auto& opts) {
                              opts.info.commandBufferCount = 1;
-                         })
-                         .invoke();
+                         })();
             if (!r.isOK()) {
                 return Result::Error(Error::wrap("allocating VkCommandBuffer", r.error()));
             }
@@ -246,8 +245,7 @@ public:
             const auto err = RecordToVkCommandBuffer(commandBuffer.value(), record)
                                  .with([&](auto& opts) {
                                      opts.beginInfo = beginInfo;
-                                 })
-                                 .invoke();
+                                 })();
             if (err.has()) {
                 return Result::Error(std::move(err));
             }
@@ -284,11 +282,11 @@ public:
     }
 
 public:
-    [[nodiscard]] Error invoke() const noexcept
+    [[nodiscard]] Error operator()() const noexcept
     {
         Scoped<VkFence> fence {};
         {
-            auto r = CreateVkFence(device).invoke();
+            auto r = CreateVkFence(device)();
             if (!r.isOK()) {
                 return Error::wrap("creating VkFence", r.error());
             }
@@ -302,8 +300,7 @@ public:
                                      opts.info.commandBufferCount = commandBuffers.size();
                                      opts.info.pCommandBuffers = commandBuffers.data();
                                      opts.fence = fence.value();
-                                 })
-                                 .invoke();
+                                 })();
             if (err.has()) {
                 return Error::wrap("submitting to VkQueue", err);
             }
@@ -314,8 +311,7 @@ public:
             const auto err = WaitForVkFences(device)
                                  .with([&](auto& opts) {
                                      opts.fences = fences;
-                                 })
-                                 .invoke();
+                                 })();
             if (err.has()) {
                 return Error::wrap("waiting for VkFence", err);
             }

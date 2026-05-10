@@ -24,7 +24,7 @@ public:
     }
 
 public:
-    [[nodiscard]] Result::Either<std::vector<VkPhysicalDevice>, Error> invoke() const noexcept
+    [[nodiscard]] Result::Either<std::vector<VkPhysicalDevice>, Error> operator()() const noexcept
     {
         uint32_t count = 0;
         {
@@ -59,10 +59,10 @@ public:
     }
 
 public:
-    [[nodiscard]] Result::Either<std::tuple<VkPhysicalDevice, uint32_t>, Error> invoke() const noexcept
+    [[nodiscard]] Result::Either<std::tuple<VkPhysicalDevice, uint32_t>, Error> operator()() const noexcept
     {
         for (const auto& device : physicalDevices) {
-            const auto queueFamilyProps = vvvv::EnumerateVkQueueFamilyProperties(device).invoke();
+            const auto queueFamilyProps = vvvv::EnumerateVkQueueFamilyProperties(device)();
             for (uint32_t i = 0; i < queueFamilyProps.size(); ++i) {
                 const auto& props = queueFamilyProps[i];
 
@@ -120,7 +120,7 @@ public:
     }
 
 public:
-    [[nodiscard]] Result::Either<Scoped<VkDevice>, Error> invoke() const noexcept
+    [[nodiscard]] Result::Either<Scoped<VkDevice>, Error> operator()() const noexcept
     {
         VkDevice device = VK_NULL_HANDLE;
         const auto result = vkCreateDevice(physicalDevice, &info, allocator, &device);

@@ -42,7 +42,7 @@ public:
     }
 
 public:
-    [[nodiscard]] Result::Either<Scoped<VkFence>, Error> invoke() const noexcept
+    [[nodiscard]] Result::Either<Scoped<VkFence>, Error> operator()() const noexcept
     {
         VkFence fence = VK_NULL_HANDLE;
         const auto err = vkCreateFence(device, &info, allocator, &fence);
@@ -79,7 +79,7 @@ public:
     }
 
 public:
-    [[nodiscard]] Error invoke() const noexcept
+    [[nodiscard]] Error operator()() const noexcept
     {
         const auto err = vkWaitForFences(device, fences.size(), fences.data(), static_cast<VkBool32>(waitAll), timeout);
         if (err != VK_SUCCESS) {

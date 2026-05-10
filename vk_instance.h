@@ -35,7 +35,7 @@ public:
 namespace vvvv {
 struct CreateVkInstance {
 public:
-    [[nodiscard]] Result::Either<Scoped<VkInstance>, Error> invoke() const noexcept
+    [[nodiscard]] Result::Either<Scoped<VkInstance>, Error> operator()() const noexcept
     {
         VkInstance instance = VK_NULL_HANDLE;
         const auto result = vkCreateInstance(&info, allocator, &instance);
