@@ -228,6 +228,35 @@ vvvv::Error run()
         std::cout << "VkCommandPool: " << commandPool.value() << "\n";
     }
 
+    vvvv::Scoped<VkCommandBuffer> commandBuffer {};
+    {
+        constexpr auto record = [](auto /* commandBuffer */) {};
+
+        auto r = vvvv::AllocateRecordToVkCommandBuffer(device.value(), commandPool.value(), record)
+                     .with([](auto& opts) {
+                         opts.beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+                     })
+                     .invoke();
+        if (!r.isOK()) {
+            return vvvv::Error::wrap("allocating, recording to vkCommandBuffer", r.error());
+        }
+
+        commandBuffer = std::move(r.ok());
+        std::cout << "VkCommandBuffer: " << commandBuffer.value() << "\n";
+    }
+    {
+        const auto commandBuffers = std::to_array({ commandBuffer.value() });
+
+        const auto err = vvvv::ExecuteVkCommandBuffers(device.value(), queue)
+                             .with([&](auto& opts) {
+                                 opts.commandBuffers = commandBuffers;
+                             })
+                             .invoke();
+        if (err.has()) {
+            return vvvv::Error::wrap("executing vkCommandBuffers", err);
+        }
+    }
+
     std::cout << "Completed\n";
     return vvvv::Error::none();
 }
