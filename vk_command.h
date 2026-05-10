@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <vulkan/vulkan_core.h>
 
 #include "error.h"
@@ -63,5 +64,45 @@ public:
     VkDevice device = VK_NULL_HANDLE;
     VkCommandPoolCreateInfo info = vkStructZero<VkCommandPoolCreateInfo>();
     VkAllocationCallbacks* allocator = nullptr;
+};
+} // namespace vvvv
+
+namespace vvvv {
+template <>
+struct ScopedTrait<VkCommandBuffer> {
+public:
+    struct Owner {
+        VkDevice device = VK_NULL_HANDLE;
+        VkCommandPool commandPool = VK_NULL_HANDLE;
+    };
+
+public:
+    static void drop(VkCommandBuffer& commandBuffer, const Owner& owner)
+    {
+        if (commandBuffer == VK_NULL_HANDLE) {
+            return;
+        }
+
+        vkFreeCommandBuffers(owner.device, owner.commandPool, 1, &commandBuffer);
+    }
+};
+
+template <>
+struct ScopedTrait<std::vector<VkCommandBuffer>> {
+public:
+    struct Owner {
+        VkDevice device = VK_NULL_HANDLE;
+        VkCommandPool commandPool = VK_NULL_HANDLE;
+    };
+
+public:
+    static void drop(const std::vector<VkCommandBuffer>& commandBuffers, const Owner& owner)
+    {
+        if (commandBuffers.empty()) {
+            return;
+        }
+
+        vkFreeCommandBuffers(owner.device, owner.commandPool, commandBuffers.size(), commandBuffers.data());
+    }
 };
 } // namespace vvvv
