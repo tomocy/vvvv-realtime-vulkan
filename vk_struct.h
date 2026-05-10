@@ -78,4 +78,9 @@ template <>
 struct VkStructZeroTrait<VkFenceCreateInfo> {
     static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 };
+
+template <>
+struct VkStructZeroTrait<VkSubmitInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+};
 } // namespace vvvv
