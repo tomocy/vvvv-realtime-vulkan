@@ -205,3 +205,67 @@ public:
     R record;
 };
 } // namespace vvvv
+
+namespace vvvv {
+template <typename R>
+    requires std::invocable<const R&, VkCommandBuffer>
+    && std::same_as<std::invoke_result_t<const R&, VkCommandBuffer>, void>
+struct AllocateRecordToVkCommandBuffer {
+public:
+    AllocateRecordToVkCommandBuffer(VkDevice device, VkCommandPool commandPool, R record) noexcept
+        : device(device)
+        , commandPool(commandPool)
+        , record(std::move(record))
+    {
+    }
+
+public:
+    [[nodiscard]] Result::Either<Scoped<VkCommandBuffer>, Error> invoke() const noexcept(std::is_nothrow_invocable_v<const R&, VkCommandBuffer>)
+    {
+        Scoped<VkCommandBuffer> commandBuffer {};
+        {
+            auto r = AllocateVkCommandBuffers(device, commandPool)
+                         .with([&](auto& opts) {
+                             opts.info.commandBufferCount = 1;
+                         })
+                         .invoke();
+            if (!r.isOK()) {
+                return Result::Error(Error::wrap("allocating VkCommandBuffer", r.error()));
+            }
+
+            assert(r.ok().value().size() == 1);
+            const auto vs = r.ok().release();
+            commandBuffer = Scoped(vs[0], { .device = device, .commandPool = commandPool });
+        }
+
+        {
+            const auto err = RecordToVkCommandBuffer(commandBuffer.value(), record)
+                                 .with([&](auto& opts) {
+                                     opts.beginInfo = beginInfo;
+                                 })
+                                 .invoke();
+            if (err.has()) {
+                return Result::Error(std::move(err));
+            }
+        }
+
+        return Result::OK(std::move(commandBuffer));
+    }
+
+public:
+    template <typename F>
+        requires std::invocable<F&, AllocateRecordToVkCommandBuffer&>
+        && std::same_as<std::invoke_result_t<F&, AllocateRecordToVkCommandBuffer&>, void>
+    AllocateRecordToVkCommandBuffer& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, AllocateRecordToVkCommandBuffer&>)
+    {
+        std::forward<F>(options)(*this);
+        return *this;
+    }
+
+public:
+    VkDevice device = VK_NULL_HANDLE;
+    VkCommandPool commandPool = VK_NULL_HANDLE;
+    VkCommandBufferBeginInfo beginInfo = vkStructZero<VkCommandBufferBeginInfo>();
+    R record;
+};
+} // namespace vvvv
