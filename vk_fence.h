@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <span>
 #include <utility>
 #include <vulkan/vulkan_core.h>
 
@@ -65,5 +66,42 @@ public:
     VkDevice device = VK_NULL_HANDLE;
     VkFenceCreateInfo info = vkStructZero<VkFenceCreateInfo>();
     VkAllocationCallbacks* allocator = nullptr;
+};
+} // namespace vvvv
+
+namespace vvvv {
+struct WaitForVkFences {
+public:
+    explicit WaitForVkFences(VkDevice device)
+        : device(device)
+    {
+    }
+
+public:
+    [[nodiscard]] Error invoke() const noexcept
+    {
+        const auto err = vkWaitForFences(device, fences.size(), fences.data(), static_cast<VkBool32>(waitAll), timeout);
+        if (err != VK_SUCCESS) {
+            return Error(std::format("{}", err));
+        }
+
+        return Error::none();
+    }
+
+public:
+    template <typename F>
+        requires std::invocable<F&, WaitForVkFences&>
+        && std::same_as<std::invoke_result_t<F&, WaitForVkFences&>, void>
+    WaitForVkFences& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, WaitForVkFences&>)
+    {
+        std::forward<F>(options)(*this);
+        return *this;
+    }
+
+public:
+    VkDevice device = VK_NULL_HANDLE;
+    std::span<const VkFence> fences;
+    bool waitAll = true;
+    uint64_t timeout = UINT64_MAX;
 };
 } // namespace vvvv
