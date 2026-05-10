@@ -73,4 +73,9 @@ template <>
 struct VkStructZeroTrait<VkCommandBufferBeginInfo> {
     static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 };
+
+template <>
+struct VkStructZeroTrait<VkFenceCreateInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+};
 } // namespace vvvv
