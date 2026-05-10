@@ -99,7 +99,7 @@ vvvv::Error run()
                      })
                      .invoke();
         if (!r.isOK()) {
-            return vvvv::Error::wrap("creating vkInstance", r.error());
+            return vvvv::Error::wrap("creating VkInstance", r.error());
         }
 
         instance = std::move(r.ok());
@@ -120,7 +120,7 @@ vvvv::Error run()
     {
         const auto err = dispatchTable.resolveFrom(instance.value());
         if (err.has()) {
-            return vvvv::Error::wrap("resolving vkInstance dispatch table", err);
+            return vvvv::Error::wrap("resolving VkInstance dispatch table", err);
         }
     }
 
@@ -145,7 +145,7 @@ vvvv::Error run()
                      })
                      .invoke();
         if (!r.isOK()) {
-            return vvvv::Error::wrap("creating vkDebugUtilsMessenger", r.error());
+            return vvvv::Error::wrap("creating VkDebugUtilsMessenger", r.error());
         }
 
         debugMessenger = std::move(r.ok());
@@ -159,7 +159,7 @@ vvvv::Error run()
         {
             auto r = vvvv::EnumerateVkPhysicalDevices(instance.value()).invoke();
             if (!r.isOK()) {
-                return vvvv::Error::wrap("enumerating vkPhysicalDevices", r.error());
+                return vvvv::Error::wrap("enumerating VkPhysicalDevices", r.error());
             }
 
             physicalDevices = std::move(r.ok());
@@ -171,7 +171,7 @@ vvvv::Error run()
                          })
                          .invoke();
             if (!r.isOK()) {
-                return vvvv::Error::wrap("finding vkPhysicalDevice", r.error());
+                return vvvv::Error::wrap("finding VkPhysicalDevice", r.error());
             }
 
             std::tie(physicalDevice, queueFamilyIndex) = r.ok();
@@ -200,7 +200,7 @@ vvvv::Error run()
                          })
                          .invoke();
             if (!r.isOK()) {
-                return vvvv::Error::wrap("creating vkDevice", r.error());
+                return vvvv::Error::wrap("creating VkDevice", r.error());
             }
 
             device = std::move(r.ok());
@@ -221,7 +221,7 @@ vvvv::Error run()
                      })
                      .invoke();
         if (!r.isOK()) {
-            return vvvv::Error::wrap("creating vkCommandPool", r.error());
+            return vvvv::Error::wrap("creating VkCommandPool", r.error());
         }
 
         commandPool = std::move(r.ok());
@@ -238,7 +238,7 @@ vvvv::Error run()
                      })
                      .invoke();
         if (!r.isOK()) {
-            return vvvv::Error::wrap("allocating, recording to vkCommandBuffer", r.error());
+            return vvvv::Error::wrap("allocating, recording to VkCommandBuffer", r.error());
         }
 
         commandBuffer = std::move(r.ok());
@@ -253,7 +253,7 @@ vvvv::Error run()
                              })
                              .invoke();
         if (err.has()) {
-            return vvvv::Error::wrap("executing vkCommandBuffers", err);
+            return vvvv::Error::wrap("executing VkCommandBuffers", err);
         }
     }
 
