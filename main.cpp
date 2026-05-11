@@ -6,6 +6,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include "error.h"
+#include "renderer.h"
 #include "scoped.h"
 #include "vk_command.h"
 #include "vk_debug.h"
@@ -213,6 +214,7 @@ vvvv::Error run()
         auto r = vvvv::CreateVkCommandPool(device.value())
                      .with([&](auto& opts) noexcept {
                          opts.info.queueFamilyIndex = queueFamilyIndex;
+                         opts.info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
                          opts.allocator = allocator;
                      })();
         if (!r.isOK()) {
@@ -223,30 +225,24 @@ vvvv::Error run()
         std::cout << "VkCommandPool: " << commandPool.value() << "\n";
     }
 
-    vvvv::Scoped<VkCommandBuffer> commandBuffer {};
+    vvvv::Renderer renderer {};
     {
-        constexpr auto record = [](auto /* commandBuffer */) {};
-
-        auto r = vvvv::AllocateRecordToVkCommandBuffer(device.value(), commandPool.value(), record)
-                     .with([](auto& opts) {
-                         opts.beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+        auto r = vvvv::CreateRenderer()
+                     .with([&](auto& opts) noexcept {
+                         opts.device = device.value();
+                         opts.commandPool = commandPool.value();
+                         opts.allocator = allocator;
                      })();
         if (!r.isOK()) {
-            return vvvv::Error::wrap("allocating, recording to VkCommandBuffer", r.error());
+            return vvvv::Error::wrap("creating Renderer", r.error());
         }
 
-        commandBuffer = std::move(r.ok());
-        std::cout << "VkCommandBuffer: " << commandBuffer.value() << "\n";
+        renderer = std::move(r.ok());
     }
-    {
-        const auto commandBuffers = std::to_array({ commandBuffer.value() });
-
-        const auto err = vvvv::ExecuteVkCommandBuffers(device.value(), queue)
-                             .with([&](auto& opts) {
-                                 opts.commandBuffers = commandBuffers;
-                             })();
+    for (size_t i = 0; i < 10; ++i) {
+        auto err = renderer.render(queue);
         if (err.has()) {
-            return vvvv::Error::wrap("executing VkCommandBuffers", err);
+            return vvvv::Error::wrap("rendering", err);
         }
     }
 
