@@ -1,6 +1,7 @@
 Checks: >
   *,
   -altera-*,
+  -bugprone-easily-swappable-parameters,
   -cppcoreguidelines-avoid-magic-numbers,
   -fuchsia-*,
   -hicpp-explicit-conversions,
