@@ -89,4 +89,9 @@ template <>
 struct VkStructZeroTrait<VkPipelineLayoutCreateInfo> {
     static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 };
+
+template <>
+struct VkStructZeroTrait<VkGraphicsPipelineCreateInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+};
 } // namespace vvvv

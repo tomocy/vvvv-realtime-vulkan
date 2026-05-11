@@ -87,3 +87,41 @@ public:
     }
 };
 } // namespace vvvv
+
+namespace vvvv {
+struct CreateVkGraphicsPipeline {
+public:
+    explicit CreateVkGraphicsPipeline(VkDevice device)
+        : device(device)
+    {
+    }
+
+public:
+    Result::Either<Scoped<VkPipeline>, Error> operator()() const
+    {
+        VkPipeline pipeline = VK_NULL_HANDLE;
+        const auto result = vkCreateGraphicsPipelines(device, pipelineCache, 1, &info, allocator, &pipeline);
+        if (result != VK_SUCCESS) {
+            return Result::Error(Error(std::format("{}", result)));
+        }
+
+        return Result::OK(Scoped(pipeline, { device, allocator }));
+    }
+
+public:
+    template <typename F>
+        requires std::invocable<F&, CreateVkGraphicsPipeline&>
+        && std::same_as<std::invoke_result_t<F&, CreateVkGraphicsPipeline&>, void>
+    CreateVkGraphicsPipeline& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, CreateVkGraphicsPipeline&>)
+    {
+        std::invoke(std::forward<F>(options), *this);
+        return *this;
+    }
+
+public:
+    VkDevice device = VK_NULL_HANDLE;
+    VkPipelineCache pipelineCache = VK_NULL_HANDLE;
+    VkGraphicsPipelineCreateInfo info = vkStructZero<VkGraphicsPipelineCreateInfo>();
+    VkAllocationCallbacks* allocator = nullptr;
+};
+} // namespace vvvv
