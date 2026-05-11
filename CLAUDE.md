@@ -12,11 +12,7 @@ Design with real-time frame-by-frame rendering in mind. During development, rend
 
 ## Planning
 
-Before implementing anything:
-1. Create a branch `plan-{name}` and do all work on it
-2. Write a plan to `doc/plan/{name}.md`
-
-The branch is for the user to implement themselves; Claude provides the plan and scaffolding on the branch.
+Before implementing anything, write a plan to `doc/plan/{name}.md`. The `doc/plan/` directory is excluded from git via `.git/info/exclude` — plans are local only and never committed.
 
 ## References
 
