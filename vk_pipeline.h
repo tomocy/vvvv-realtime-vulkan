@@ -66,3 +66,24 @@ public:
     VkAllocationCallbacks* allocator = nullptr;
 };
 } // namespace vvvv
+
+namespace vvvv {
+template <>
+struct ScopedTrait<VkPipeline> {
+public:
+    struct Owner {
+        VkDevice device = VK_NULL_HANDLE;
+        VkAllocationCallbacks* allocator = nullptr;
+    };
+
+public:
+    static void drop(VkPipeline& pipeline, const Owner& owner)
+    {
+        if (pipeline == VK_NULL_HANDLE) {
+            return;
+        }
+
+        vkDestroyPipeline(owner.device, pipeline, owner.allocator);
+    }
+};
+} // namespace vvvv
