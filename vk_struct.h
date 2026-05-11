@@ -86,6 +86,11 @@ struct VkStructZeroTrait<VkSubmitInfo> {
 };
 
 template <>
+struct VkStructZeroTrait<VkShaderModuleCreateInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+};
+
+template <>
 struct VkStructZeroTrait<VkPipelineLayoutCreateInfo> {
     static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 };
