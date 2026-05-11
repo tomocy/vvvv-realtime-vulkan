@@ -211,6 +211,41 @@ public:
 } // namespace vvvv
 
 namespace vvvv {
+struct ResetVkCommandBuffer {
+public:
+    explicit ResetVkCommandBuffer(VkCommandBuffer commandBuffer) noexcept
+        : commandBuffer(commandBuffer)
+    {
+    }
+
+public:
+    [[nodiscard]] Error operator()() const noexcept
+    {
+        const auto err = vkResetCommandBuffer(commandBuffer, 0);
+        if (err != VK_SUCCESS) {
+            return Error(std::format("{}", err));
+        }
+
+        return Error::none();
+    }
+
+public:
+    template <typename F>
+        requires std::invocable<F&, ResetVkCommandBuffer&>
+        && std::same_as<std::invoke_result_t<F&, ResetVkCommandBuffer&>, void>
+    ResetVkCommandBuffer& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, ResetVkCommandBuffer&>)
+    {
+        std::invoke(std::forward<F>(options), *this);
+        return *this;
+    }
+
+public:
+    VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+    VkCommandBufferResetFlags flags = 0;
+};
+} // namespace vvvv
+
+namespace vvvv {
 template <typename R>
     requires std::invocable<const R&, VkCommandBuffer>
     && std::same_as<std::invoke_result_t<const R&, VkCommandBuffer>, void>
