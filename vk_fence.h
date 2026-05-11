@@ -71,6 +71,41 @@ public:
 } // namespace vvvv
 
 namespace vvvv {
+struct ResetVkFences {
+public:
+    explicit ResetVkFences(VkDevice device)
+        : device(device)
+    {
+    }
+
+public:
+    Error operator()() const noexcept
+    {
+        const auto err = vkResetFences(device, fences.size(), fences.data());
+        if (err != VK_SUCCESS) {
+            return Error(std::format("{}", err));
+        }
+
+        return Error::none();
+    }
+
+public:
+    template <typename F>
+        requires std::invocable<F&, ResetVkFences&>
+        && std::same_as<std::invoke_result_t<F&, ResetVkFences&>, void>
+    ResetVkFences& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, ResetVkFences&>)
+    {
+        std::invoke(std::forward<F>(options), *this);
+        return *this;
+    }
+
+public:
+    VkDevice device = VK_NULL_HANDLE;
+    std::span<const VkFence> fences;
+};
+} // namespace vvvv
+
+namespace vvvv {
 struct WaitForVkFences {
 public:
     explicit WaitForVkFences(VkDevice device)
