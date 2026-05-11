@@ -84,4 +84,9 @@ template <>
 struct VkStructZeroTrait<VkSubmitInfo> {
     static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 };
+
+template <>
+struct VkStructZeroTrait<VkPipelineLayoutCreateInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+};
 } // namespace vvvv
