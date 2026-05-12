@@ -10,3 +10,8 @@ RUN apt update \
         libvulkan-dev \
         vulkan-validationlayers \
     && rm -rf /var/lib/apt/lists/*
+
+COPY install-slangc.sh /tmp/install-slangc.sh
+RUN chmod +x /tmp/install-slangc.sh \
+    && /tmp/install-slangc.sh \
+    && rm /tmp/install-slangc.sh
