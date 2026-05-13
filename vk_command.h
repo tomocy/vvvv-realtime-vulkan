@@ -3,6 +3,7 @@
 #include <array>
 #include <functional>
 #include <span>
+#include <utility>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
@@ -369,5 +370,54 @@ public:
     VkDevice device = VK_NULL_HANDLE;
     VkQueue queue = VK_NULL_HANDLE;
     std::span<const VkCommandBuffer> commandBuffers;
+};
+} // namespace vvvv
+
+namespace vvvv {
+template <typename R = decltype([](VkCommandBuffer) constexpr {})>
+    requires std::invocable<const R&, VkCommandBuffer>
+    && std::same_as<std::invoke_result_t<const R&, VkCommandBuffer>, void>
+struct RecordVkDynamicRendering {
+public:
+    explicit RecordVkDynamicRendering(VkCommandBuffer commandBuffer, R record) noexcept
+        : commandBuffer(commandBuffer)
+        , record(record)
+    {
+    }
+
+public:
+    void operator()() const noexcept(std::is_nothrow_invocable_v<const R&, VkCommandBuffer>)
+    {
+        vkCmdBeginRendering(commandBuffer, &info);
+
+        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+        std::invoke(record, commandBuffer);
+
+        vkCmdEndRendering(commandBuffer);
+    }
+
+public:
+    template <typename F>
+        requires std::invocable<F&, RecordVkDynamicRendering&>
+        && std::same_as<std::invoke_result_t<F&, RecordVkDynamicRendering&>, void>
+    RecordVkDynamicRendering& with(F&& options)
+    {
+        std::invoke(std::forward<F>(options), *this);
+        return *this;
+    }
+
+public:
+    VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+
+    VkRenderingInfo info = vkStructZero<VkRenderingInfo>([](auto& v) {
+        v.layerCount = 1;
+    });
+
+    VkViewport viewport = {};
+    VkRect2D scissor = {};
+
+    R record;
 };
 } // namespace vvvv
