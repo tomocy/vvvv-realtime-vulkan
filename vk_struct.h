@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <concepts>
 #include <functional>
 #include <utility>
@@ -151,5 +152,26 @@ template <typename T>
 concept VkBaseOutStructureConcept = requires(T v) {
     { v.sType } -> std::same_as<VkStructureType&>;
     { v.pNext } -> std::same_as<void*&>;
+};
+} // namespace vvvv
+
+namespace vvvv {
+struct ChainVkBaseOutStructures {
+public:
+    template <VkBaseOutStructureConcept... Ts>
+    constexpr void* operator()(Ts&... vs) const noexcept
+    {
+        static_assert(sizeof...(vs) > 0);
+
+        auto structs = std::to_array<VkBaseOutStructure*>({
+            reinterpret_cast<VkBaseOutStructure*>(&vs)..., // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast
+        });
+        for (size_t i = 0; i < structs.size() - 1; ++i) {
+            structs[i]->pNext = structs[i + 1];
+        }
+        structs.back()->pNext = nullptr;
+
+        return structs.front();
+    }
 };
 } // namespace vvvv
