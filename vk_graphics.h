@@ -137,6 +137,13 @@ public:
                              opts.info.layout = pipelineLayout.value();
                              opts.info.stageCount = static_cast<uint32_t>(stages.size());
                              opts.info.pStages = stages.data();
+                             opts.info.pVertexInputState = &vertexInputState;
+                             opts.info.pInputAssemblyState = &inputAssemblyState;
+                             opts.info.pViewportState = &viewportState;
+                             opts.info.pRasterizationState = &rasterizationState;
+                             opts.info.pMultisampleState = &multisampleState;
+                             opts.info.pColorBlendState = &colorBlendState;
+                             opts.info.pDynamicState = &dynamicState;
                              opts.allocator = allocator;
                          })();
             if (!r.isOK()) {
@@ -172,6 +179,25 @@ public:
 
     std::filesystem::path fragmentShaderFilepath;
     const char* fragmentShaderEntryPoint = "main";
+
+    VkPipelineVertexInputStateCreateInfo vertexInputState = vkStructZero<VkPipelineVertexInputStateCreateInfo>();
+
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = vkStructZero<VkPipelineInputAssemblyStateCreateInfo>([](auto& v) {
+        v.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    });
+
+    VkPipelineViewportStateCreateInfo viewportState = vkStructZero<VkPipelineViewportStateCreateInfo>();
+
+    VkPipelineRasterizationStateCreateInfo rasterizationState = vkStructZero<VkPipelineRasterizationStateCreateInfo>([](auto& v) {
+        v.lineWidth = 1.0;
+    });
+
+    VkPipelineMultisampleStateCreateInfo multisampleState = vkStructZero<VkPipelineMultisampleStateCreateInfo>([](auto& v) {
+        v.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    });
+
+    VkPipelineColorBlendStateCreateInfo colorBlendState = vkStructZero<VkPipelineColorBlendStateCreateInfo>();
+    VkPipelineDynamicStateCreateInfo dynamicState = vkStructZero<VkPipelineDynamicStateCreateInfo>();
 
     VkAllocationCallbacks* allocator = nullptr;
 };

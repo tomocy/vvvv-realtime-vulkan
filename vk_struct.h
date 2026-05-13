@@ -101,6 +101,41 @@ struct VkStructZeroTrait<VkPipelineShaderStageCreateInfo> {
 };
 
 template <>
+struct VkStructZeroTrait<VkPipelineVertexInputStateCreateInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+};
+
+template <>
+struct VkStructZeroTrait<VkPipelineInputAssemblyStateCreateInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+};
+
+template <>
+struct VkStructZeroTrait<VkPipelineViewportStateCreateInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+};
+
+template <>
+struct VkStructZeroTrait<VkPipelineRasterizationStateCreateInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+};
+
+template <>
+struct VkStructZeroTrait<VkPipelineMultisampleStateCreateInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+};
+
+template <>
+struct VkStructZeroTrait<VkPipelineColorBlendStateCreateInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+};
+
+template <>
+struct VkStructZeroTrait<VkPipelineDynamicStateCreateInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+};
+
+template <>
 struct VkStructZeroTrait<VkGraphicsPipelineCreateInfo> {
     static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 };
