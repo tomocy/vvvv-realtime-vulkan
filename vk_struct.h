@@ -145,3 +145,11 @@ struct VkStructZeroTrait<VkRenderingInfo> {
     static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
 };
 } // namespace vvvv
+
+namespace vvvv {
+template <typename T>
+concept VkBaseOutStructureConcept = requires(T v) {
+    { v.sType } -> std::same_as<VkStructureType&>;
+    { v.pNext } -> std::same_as<void*&>;
+};
+} // namespace vvvv
