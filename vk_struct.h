@@ -77,6 +77,11 @@ struct VkStructZeroTrait<VkImageCreateInfo> {
 };
 
 template <>
+struct VkStructZeroTrait<VkMemoryAllocateInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+};
+
+template <>
 struct VkStructZeroTrait<VkImageViewCreateInfo> {
     static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 };
