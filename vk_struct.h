@@ -87,8 +87,23 @@ struct VkStructZeroTrait<VkPhysicalDeviceMemoryProperties2> {
 };
 
 template <>
+struct VkStructZeroTrait<VkMemoryRequirements2> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2;
+};
+
+template <>
+struct VkStructZeroTrait<VkImageMemoryRequirementsInfo2> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2;
+};
+
+template <>
 struct VkStructZeroTrait<VkMemoryAllocateInfo> {
     static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+};
+
+template <>
+struct VkStructZeroTrait<VkBindImageMemoryInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO;
 };
 
 template <>
@@ -179,6 +194,11 @@ struct VkStructZeroTrait<VkGraphicsPipelineCreateInfo> {
 template <>
 struct VkStructZeroTrait<VkRenderingInfo> {
     static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+};
+
+template <>
+struct VkStructZeroTrait<VkRenderingAttachmentInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
 };
 } // namespace vvvv
 

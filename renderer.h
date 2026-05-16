@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <functional>
 #include <vulkan/vulkan_core.h>
 
@@ -8,6 +9,8 @@
 #include "scoped.h"
 #include "vk_command.h"
 #include "vk_graphics.h"
+#include "vk_image.h"
+#include "vk_struct.h"
 
 namespace vvvv {
 struct Renderer {
@@ -18,11 +21,13 @@ public:
         VkDevice device,
         Scoped<VkCommandBuffer> commandBuffer,
         Scoped<VkFence> fence,
+        Scoped<VkImageView> outputImageView,
         VkGraphicsKernel triangleKernel
     )
         : device_(device)
         , commandBuffer_(std::move(commandBuffer))
         , fence_(std::move(fence))
+        , outputImageView_(std::move(outputImageView))
         , triangleKernel_(std::move(triangleKernel))
     {
     }
@@ -50,6 +55,15 @@ public:
         {
             const auto renderExtent = VkExtent2D { .width = 512, .height = 512 };
 
+            const auto colorAttachments = std::to_array({
+                vkStructZero<VkRenderingAttachmentInfo>([&](auto& v) {
+                    v.imageView = outputImageView_.value();
+                    v.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+                    v.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+                    v.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+                }),
+            });
+
             const auto record = [&](auto commandBuffer) {
                 RecordVkDynamicRendering(
                     commandBuffer,
@@ -58,6 +72,8 @@ public:
                     }
                 ).with([&](auto& opts) {
                     opts.info.renderArea.extent = renderExtent;
+                    opts.info.colorAttachmentCount = colorAttachments.size();
+                    opts.info.pColorAttachments = colorAttachments.data();
                     opts.viewport.width = renderExtent.width;
                     opts.viewport.height = renderExtent.height;
                     opts.scissor.extent = renderExtent;
@@ -102,6 +118,8 @@ private:
     Scoped<VkCommandBuffer> commandBuffer_;
     Scoped<VkFence> fence_;
 
+    Scoped<VkImageView> outputImageView_;
+
     VkGraphicsKernel triangleKernel_;
 };
 } // namespace vvvv
@@ -136,6 +154,35 @@ public:
             fence = std::move(r.ok());
         }
 
+        Scoped<VkImageView> outputImageView {};
+        {
+            auto r = CreateVkImageView(device)
+                         .with([&](auto& opts) {
+                             opts.info.image = outputImage;
+                             opts.info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+                             opts.info.format = VK_FORMAT_R8G8B8A8_UNORM;
+                             opts.info.components = VkComponentMapping {
+                                 .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                                 .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                                 .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                                 .a = VK_COMPONENT_SWIZZLE_IDENTITY,
+                             };
+                             opts.info.subresourceRange = VkImageSubresourceRange {
+                                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                 .baseMipLevel = 0,
+                                 .levelCount = 1,
+                                 .baseArrayLayer = 0,
+                                 .layerCount = 1,
+                             };
+                             opts.allocator = allocator;
+                         })();
+            if (!r.isOK()) {
+                return Result::Error(Error::wrap("creating VkImageView for output image", r.error()));
+            }
+
+            outputImageView = std::move(r.ok());
+        }
+
         VkGraphicsKernel triangleKernel {};
         {
             const auto dynamicState = std::to_array({
@@ -164,6 +211,7 @@ public:
                 device,
                 std::move(commandBuffer),
                 std::move(fence),
+                std::move(outputImageView),
                 std::move(triangleKernel)
             )
         );
@@ -182,6 +230,7 @@ public:
 public:
     VkDevice device = VK_NULL_HANDLE;
     VkCommandPool commandPool = VK_NULL_HANDLE;
+    VkImage outputImage = VK_NULL_HANDLE;
     VkAllocationCallbacks* allocator = nullptr;
 };
 } // namespace vvvv

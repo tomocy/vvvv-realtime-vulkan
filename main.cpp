@@ -11,7 +11,9 @@
 #include "vk_command.h"
 #include "vk_debug.h"
 #include "vk_device.h"
+#include "vk_image.h"
 #include "vk_instance.h"
+#include "vk_memory.h"
 #include "vk_pfn.h"
 #include "vk_struct.h"
 
@@ -233,12 +235,102 @@ vvvv::Error run()
         std::cout << "VkCommandPool: " << commandPool.value() << "\n";
     }
 
+    vvvv::Scoped<vvvv::OnVkDeviceMemory<VkImage>> outputImage {};
+    {
+        vvvv::Scoped<VkImage> image {};
+        {
+            auto r = vvvv::CreateVkImage(device.value())
+                         .with([&](auto& opts) {
+                             opts.info.imageType = VK_IMAGE_TYPE_2D;
+                             opts.info.format = VK_FORMAT_R8G8B8A8_UNORM;
+                             opts.info.extent = VkExtent3D { .width = 512, .height = 512, .depth = 1 };
+                             opts.info.mipLevels = 1;
+                             opts.info.arrayLayers = 1;
+                             opts.info.samples = VK_SAMPLE_COUNT_1_BIT;
+                             opts.info.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+                             opts.allocator = allocator;
+                         })();
+            if (!r.isOK()) {
+                return vvvv::Error::wrap("creating VkImage for output image", r.error());
+            }
+
+            image = std::move(r.ok());
+        }
+
+        vvvv::Scoped<VkDeviceMemory> memory {};
+        {
+            auto reqs = vvvv::vkStructZero<VkMemoryRequirements2>();
+            const auto info = vvvv::vkStructZero<VkImageMemoryRequirementsInfo2>([&](auto& v) {
+                v.image = image.value();
+            });
+            vkGetImageMemoryRequirements2(device.value(), &info, &reqs);
+
+            uint32_t typeIndex = 0;
+            {
+                const auto r = vvvv::FindVkDeviceMemoryTypeIndex(physicalDevice)
+                                   .with([&](auto& opts) {
+                                       opts.typeBits = reqs.memoryRequirements.memoryTypeBits;
+                                   })();
+                if (!r.isOK()) {
+                    return vvvv::Error::wrap("finding VkDeviceMemory type index for output image", r.error());
+                }
+
+                typeIndex = r.ok();
+            }
+
+            {
+                auto r = vvvv::AllocateVkDeviceMemory(device.value())
+                             .with([&](auto& opts) {
+                                 opts.info.allocationSize = reqs.memoryRequirements.size;
+                                 opts.info.memoryTypeIndex = typeIndex;
+                                 opts.allocator = allocator;
+                             })();
+                if (!r.isOK()) {
+                    return vvvv::Error::wrap("allocating VkDeviceMemory for output image", r.error());
+                }
+
+                memory = std::move(r.ok());
+            }
+        }
+        {
+            const auto infos = std::to_array({
+                vvvv::vkStructZero<VkBindImageMemoryInfo>([&](auto& v) {
+                    v.image = image.value();
+                    v.memory = memory.value();
+                }),
+            });
+
+            const auto err = vvvv::BindVkImageMemory(device.value())
+                                 .with([&](auto& opts) {
+                                     opts.infos = infos;
+                                 })();
+            if (err.has()) {
+                return vvvv::Error::wrap("binding VkImage memory for output image", err);
+            }
+        }
+
+        outputImage = vvvv::Scoped(
+            vvvv::OnVkDeviceMemory(image.release(), memory.release()),
+            {
+                .value = {
+                    .device = device.value(),
+                    .allocator = allocator,
+                },
+                .memory = {
+                    .device = device.value(),
+                    .allocator = allocator,
+                },
+            }
+        );
+    }
+
     vvvv::Renderer renderer {};
     {
         auto r = vvvv::CreateRenderer()
                      .with([&](auto& opts) noexcept {
                          opts.device = device.value();
                          opts.commandPool = commandPool.value();
+                         opts.outputImage = outputImage.value().value;
                          opts.allocator = allocator;
                      })();
         if (!r.isOK()) {
