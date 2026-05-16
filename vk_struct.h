@@ -52,6 +52,16 @@ struct VkStructZeroTrait<VkQueueFamilyProperties2> {
 };
 
 template <>
+struct VkStructZeroTrait<VkPhysicalDeviceVulkan11Features> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+};
+
+template <>
+struct VkStructZeroTrait<VkPhysicalDeviceVulkan13Features> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+};
+
+template <>
 struct VkStructZeroTrait<VkDeviceCreateInfo> {
     static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 };

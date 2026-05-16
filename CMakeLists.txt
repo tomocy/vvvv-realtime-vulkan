@@ -41,5 +41,8 @@ function(compile_shader SHADER_NAME STAGE ENTRY)
     set(SHADER_BINS ${SHADER_BINS} PARENT_SCOPE)
 endfunction()
 
+compile_shader(triangle vertex vertexMain)
+compile_shader(triangle fragment fragmentMain)
+
 add_custom_target(shaders ALL DEPENDS ${SHADER_BINS})
 add_dependencies(vvvv shaders)

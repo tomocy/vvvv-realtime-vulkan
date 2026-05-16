@@ -183,6 +183,13 @@ vvvv::Error run()
     VkQueue queue {};
     {
         {
+            auto feature11 = vvvv::vkStructZero<VkPhysicalDeviceVulkan11Features>([](auto& v) {
+                v.shaderDrawParameters = VK_TRUE;
+            });
+            auto feature13 = vvvv::vkStructZero<VkPhysicalDeviceVulkan13Features>([](auto& v) {
+                v.dynamicRendering = VK_TRUE;
+            });
+
             const float queuePriority = 1.0;
             const auto queueCreateInfo = vvvv::vkStructZero<VkDeviceQueueCreateInfo>([&](auto& v) {
                 v.queueFamilyIndex = queueFamilyIndex;
@@ -192,6 +199,7 @@ vvvv::Error run()
 
             auto r = vvvv::CreateVkDevice(physicalDevice)
                          .with([&](auto& opts) noexcept {
+                             opts.info.pNext = vvvv::ChainVkBaseOutStructures()(feature11, feature13);
                              opts.info.queueCreateInfoCount = 1;
                              opts.info.pQueueCreateInfos = &queueCreateInfo;
                              opts.allocator = allocator;

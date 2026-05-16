@@ -7,6 +7,7 @@
 #include "result.h"
 #include "scoped.h"
 #include "vk_command.h"
+#include "vk_graphics.h"
 
 namespace vvvv {
 struct Renderer {
@@ -16,11 +17,13 @@ public:
     Renderer(
         VkDevice device,
         Scoped<VkCommandBuffer> commandBuffer,
-        Scoped<VkFence> fence
+        Scoped<VkFence> fence,
+        VkGraphicsKernel triangleKernel
     )
         : device_(device)
         , commandBuffer_(std::move(commandBuffer))
         , fence_(std::move(fence))
+        , triangleKernel_(std::move(triangleKernel))
     {
     }
 
@@ -45,7 +48,20 @@ public:
             }
         }
         {
-            constexpr auto record = [](auto /* commandBuffer */) {
+            const auto renderExtent = VkExtent2D { .width = 512, .height = 512 };
+
+            const auto record = [&](auto commandBuffer) {
+                RecordVkDynamicRendering(
+                    commandBuffer,
+                    [&](auto commandBuffer) {
+                        triangleKernel_.draw(commandBuffer, 3);
+                    }
+                ).with([&](auto& opts) {
+                    opts.info.renderArea.extent = renderExtent;
+                    opts.viewport.width = renderExtent.width;
+                    opts.viewport.height = renderExtent.height;
+                    opts.scissor.extent = renderExtent;
+                })();
             };
 
             const auto err = RecordToVkCommandBuffer(commandBuffer_.value(), record)();
@@ -85,6 +101,8 @@ private:
     VkDevice device_ = VK_NULL_HANDLE;
     Scoped<VkCommandBuffer> commandBuffer_;
     Scoped<VkFence> fence_;
+
+    VkGraphicsKernel triangleKernel_;
 };
 } // namespace vvvv
 
@@ -118,11 +136,35 @@ public:
             fence = std::move(r.ok());
         }
 
+        VkGraphicsKernel triangleKernel {};
+        {
+            const auto dynamicState = std::to_array({
+                VK_DYNAMIC_STATE_VIEWPORT,
+                VK_DYNAMIC_STATE_SCISSOR,
+            });
+
+            auto r = CreateVkGraphicsKernel(device).with([&](auto& opts) {
+                opts.vertexShaderFilepath = "build/shader/triangle.vertex.spv";
+                opts.fragmentShaderFilepath = "build/shader/triangle.fragment.spv";
+                opts.viewportState.viewportCount = 1;
+                opts.viewportState.scissorCount = 1;
+                opts.dynamicState.dynamicStateCount = dynamicState.size();
+                opts.dynamicState.pDynamicStates = dynamicState.data();
+                opts.allocator = allocator;
+            })();
+            if (!r.isOK()) {
+                return Result::Error(Error::wrap("creating VkGraphicsKernel for triangle", r.error()));
+            }
+
+            triangleKernel = std::move(r.ok());
+        }
+
         return Result::OK(
             Renderer(
                 device,
                 std::move(commandBuffer),
-                std::move(fence)
+                std::move(fence),
+                std::move(triangleKernel)
             )
         );
     }
