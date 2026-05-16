@@ -40,6 +40,25 @@ public:
 } // namespace vvvv
 
 namespace vvvv {
+template <typename T>
+    requires ScopedConcept<T>
+struct ScopedTrait<OnVkDeviceMemory<T>> {
+public:
+    struct Owner {
+        ScopedTrait<T>::Owner value;
+        ScopedTrait<VkDeviceMemory>::Owner memory;
+    };
+
+public:
+    static void drop(OnVkDeviceMemory<T>& v, const Owner& owner)
+    {
+        ScopedTrait<T>::drop(v.value, owner.value);
+        ScopedTrait<VkDeviceMemory>::drop(v.memory, owner.memory);
+    }
+};
+} // namespace vvvv
+
+namespace vvvv {
 struct AllocateVkDeviceMemory {
 public:
     Result::Either<Scoped<VkDeviceMemory>, Error> operator()() const noexcept
