@@ -31,6 +31,15 @@ public:
 } // namespace vvvv
 
 namespace vvvv {
+template <typename T>
+struct OnVkDeviceMemory {
+public:
+    T value {};
+    VkDeviceMemory memory = VK_NULL_HANDLE;
+};
+} // namespace vvvv
+
+namespace vvvv {
 struct AllocateVkDeviceMemory {
 public:
     Result::Either<Scoped<VkDeviceMemory>, Error> operator()() const noexcept
