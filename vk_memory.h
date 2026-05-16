@@ -1,6 +1,7 @@
 #pragma once
 
 #include <format>
+#include <span>
 #include <vulkan/vulkan_core.h>
 
 #include "error.h"
@@ -132,5 +133,40 @@ public:
     VkDevice device = VK_NULL_HANDLE;
     VkMemoryAllocateInfo info = vkStructZero<VkMemoryAllocateInfo>();
     VkAllocationCallbacks* allocator = nullptr;
+};
+} // namespace vvvv
+
+namespace vvvv {
+struct BindVkImageMemory {
+public:
+    explicit BindVkImageMemory(VkDevice device)
+        : device(device)
+    {
+    }
+
+public:
+    Error operator()() const noexcept
+    {
+        const auto result = vkBindImageMemory2(device, infos.size(), infos.data());
+        if (result != VK_SUCCESS) {
+            return Error(std::format("{}", result));
+        }
+
+        return Error::none();
+    }
+
+public:
+    template <typename F>
+        requires std::invocable<F&, BindVkImageMemory&>
+        && std::same_as<std::invoke_result_t<F&, BindVkImageMemory&>, void>
+    BindVkImageMemory& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, BindVkImageMemory&>)
+    {
+        std::invoke(std::forward<F>(options), *this);
+        return *this;
+    }
+
+public:
+    VkDevice device = VK_NULL_HANDLE;
+    std::span<const VkBindImageMemoryInfo> infos;
 };
 } // namespace vvvv
