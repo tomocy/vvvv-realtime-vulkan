@@ -59,6 +59,52 @@ public:
 } // namespace vvvv
 
 namespace vvvv {
+struct FindVkDeviceMemoryTypeIndex {
+public:
+    explicit FindVkDeviceMemoryTypeIndex(VkPhysicalDevice physicalDevice)
+        : physicalDevice(physicalDevice)
+    {
+    }
+
+public:
+    Result::Either<uint32_t, Error> operator()() const noexcept
+    {
+        VkPhysicalDeviceMemoryProperties props {};
+        {
+            auto props2 = vkStructZero<VkPhysicalDeviceMemoryProperties2>();
+            vkGetPhysicalDeviceMemoryProperties2(physicalDevice, &props2);
+            props = props2.memoryProperties;
+        }
+
+        for (uint32_t i = 0; i < props.memoryTypeCount; ++i) {
+            const auto typeMatch = (typeBits & (1U << i)) != 0;
+            const auto propMatch = (props.memoryTypes[i].propertyFlags & propFlags) == propFlags;
+            if (typeMatch && propMatch) {
+                return Result::OK(i);
+            }
+        }
+
+        return Result::Error(Error(std::format("no suitable VkDeviceMemory type index (typeBits: {}, propFlags: {})", typeBits, propFlags)));
+    }
+
+public:
+    template <typename F>
+        requires std::invocable<F&, FindVkDeviceMemoryTypeIndex&>
+        && std::same_as<std::invoke_result_t<F&, FindVkDeviceMemoryTypeIndex&>, void>
+    FindVkDeviceMemoryTypeIndex& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, FindVkDeviceMemoryTypeIndex&>)
+    {
+        std::invoke(std::forward<F>(options), *this);
+        return *this;
+    }
+
+public:
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    uint32_t typeBits = 0;
+    VkMemoryPropertyFlags propFlags = 0;
+};
+} // namespace vvvv
+
+namespace vvvv {
 struct AllocateVkDeviceMemory {
 public:
     Result::Either<Scoped<VkDeviceMemory>, Error> operator()() const noexcept

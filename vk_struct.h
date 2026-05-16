@@ -82,6 +82,11 @@ struct VkStructZeroTrait<VkImageCreateInfo> {
 };
 
 template <>
+struct VkStructZeroTrait<VkPhysicalDeviceMemoryProperties2> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;
+};
+
+template <>
 struct VkStructZeroTrait<VkMemoryAllocateInfo> {
     static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 };

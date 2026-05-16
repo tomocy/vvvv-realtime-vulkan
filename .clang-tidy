@@ -3,6 +3,7 @@ Checks: >
   -altera-*,
   -bugprone-easily-swappable-parameters,
   -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-pro-bounds-constant-array-index,
   -fuchsia-*,
   -hicpp-explicit-conversions,
   -llvmlibc-callee-namespace,
