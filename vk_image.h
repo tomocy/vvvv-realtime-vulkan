@@ -66,3 +66,24 @@ public:
     VkAllocationCallbacks* allocator = nullptr;
 };
 } // namespace vvvv
+
+namespace vvvv {
+template <>
+struct ScopedTrait<VkImageView> {
+public:
+    struct Owner {
+        VkDevice device = VK_NULL_HANDLE;
+        VkAllocationCallbacks* allocator = nullptr;
+    };
+
+public:
+    static void drop(VkImageView& imageView, const Owner& owner)
+    {
+        if (imageView == VK_NULL_HANDLE) {
+            return;
+        }
+
+        vkDestroyImageView(owner.device, imageView, owner.allocator);
+    }
+};
+} // namespace vvvv
