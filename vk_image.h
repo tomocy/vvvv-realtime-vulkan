@@ -87,3 +87,40 @@ public:
     }
 };
 } // namespace vvvv
+
+namespace vvvv {
+struct CreateVkImageView {
+public:
+    explicit CreateVkImageView(VkDevice device)
+        : device(device)
+    {
+    }
+
+public:
+    Result::Either<Scoped<VkImageView>, Error> operator()() const noexcept
+    {
+        VkImageView imageView = VK_NULL_HANDLE;
+        const auto result = vkCreateImageView(device, &info, allocator, &imageView);
+        if (result != VK_SUCCESS) {
+            return Result::Error(Error(std::format("{}", result)));
+        }
+
+        return Result::OK(Scoped(imageView, { .device = device, .allocator = allocator }));
+    }
+
+public:
+    template <typename F>
+        requires std::invocable<F&, CreateVkImageView&>
+        && std::same_as<std::invoke_result_t<F&, CreateVkImageView&>, void>
+    CreateVkImageView& with(F&& options) noexcept(std::is_nothrow_invocable_v<F&, CreateVkImageView&>)
+    {
+        std::invoke(std::forward<F>(options), *this);
+        return *this;
+    }
+
+public:
+    VkDevice device = VK_NULL_HANDLE;
+    VkImageViewCreateInfo info = vkStructZero<VkImageViewCreateInfo>();
+    VkAllocationCallbacks* allocator = nullptr;
+};
+} // namespace vvvv
