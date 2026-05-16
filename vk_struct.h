@@ -72,6 +72,11 @@ struct VkStructZeroTrait<VkDeviceQueueCreateInfo> {
 };
 
 template <>
+struct VkStructZeroTrait<VkBufferCreateInfo> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+};
+
+template <>
 struct VkStructZeroTrait<VkImageCreateInfo> {
     static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 };
