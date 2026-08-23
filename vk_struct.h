@@ -200,6 +200,16 @@ template <>
 struct VkStructZeroTrait<VkRenderingAttachmentInfo> {
     static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
 };
+
+template <>
+struct VkStructZeroTrait<VkBufferImageCopy2> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2;
+};
+
+template <>
+struct VkStructZeroTrait<VkCopyImageToBufferInfo2> {
+    static constexpr VkStructureType sType = VK_STRUCTURE_TYPE_COPY_IMAGE_TO_BUFFER_INFO_2;
+};
 } // namespace vvvv
 
 namespace vvvv {
