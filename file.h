@@ -39,3 +39,24 @@ public:
     }
 };
 } // namespace vvvv
+
+namespace vvvv {
+struct FileWriter {
+public:
+    // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
+    [[nodiscard]] Error write(const std::filesystem::path& path, std::span<const std::byte> data) const
+    {
+        std::ofstream file(path, std::ios::binary);
+        if (!file) {
+            return Error(std::format("failed to open the file: {}", path.string()));
+        }
+
+        file.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(data.size())); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        if (!file) {
+            return Error(std::format("failed to write to the file: {}", path.string()));
+        }
+
+        return Error::none();
+    }
+};
+} // namespace vvvv
