@@ -1,11 +1,15 @@
 #include <array>
+#include <cstddef>
 #include <iostream>
 #include <string>
 #include <utility>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
+#include "bmp.h"
+#include "capturer.h"
 #include "error.h"
+#include "file.h"
 #include "renderer.h"
 #include "scoped.h"
 #include "vk_command.h"
@@ -343,6 +347,44 @@ vvvv::Error run()
         auto err = renderer.render(queue);
         if (err.has()) {
             return vvvv::Error::wrap("rendering", err);
+        }
+    }
+
+    vvvv::Capturer capturer {};
+    {
+        auto r = vvvv::CreateCapturer()();
+        if (!r.isOK()) {
+            return vvvv::Error::wrap("creating Capturer", r.error());
+        }
+
+        capturer = r.ok();
+    }
+    {
+        std::vector<std::byte> raw {};
+        {
+            auto r = capturer.capture(512, 512, 3);
+            if (!r.isOK()) {
+                return vvvv::Error::wrap("capturing the output image", r.error());
+            }
+
+            raw = std::move(r.ok());
+        }
+
+        std::vector<std::byte> bmp {};
+        {
+            auto r = vvvv::BMPEncoder().encode(raw, 512, 512, 3);
+            if (!r.isOK()) {
+                return vvvv::Error::wrap("encoding the output image to BMP", r.error());
+            }
+
+            bmp = std::move(r.ok());
+        }
+
+        {
+            const auto err = vvvv::FileWriter().write("output.bmp", bmp);
+            if (err.has()) {
+                return vvvv::Error::wrap("writing output.bmp", err);
+            }
         }
     }
 
